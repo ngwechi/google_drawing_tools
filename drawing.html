@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Drawing tools</title>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+    <style>
+      #map-canvas {
+        height: 500px;
+        margin: 0px;
+        padding: 0px
+      }
+    </style>
+    <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false&libraries=drawing"></script>
+	<script src="jquery.js"></script>
+    
+  </head>
+  <body>
+  <input type="button" id="map-add" value="Add"/>
+    <div id="map-canvas"></div>
+	<script>
+var drawingManager=null;
+var draw_array=[];
+function initialize() {
+  var mapOptions = {
+    center: new google.maps.LatLng(-34.397, 150.644),
+    zoom: 8
+  };
+
+  var map = new google.maps.Map(document.getElementById('map-canvas'),
+    mapOptions);
+
+   drawingManager = new google.maps.drawing.DrawingManager({
+    drawingMode: google.maps.drawing.OverlayType.MARKER,
+    drawingControl: true,
+    drawingControlOptions: {
+      position: google.maps.ControlPosition.TOP_CENTER,
+      drawingModes: [
+        google.maps.drawing.OverlayType.CIRCLE,
+        google.maps.drawing.OverlayType.POLYGON,
+        google.maps.drawing.OverlayType.POLYLINE
+      ]
+    },
+    markerOptions: {
+      icon: 'images/beachflag.png'
+    },
+    circleOptions: {
+      fillColor: '#ffff00',
+      fillOpacity: 1,
+      strokeWeight: 5,
+      clickable: false,
+      editable: true,
+      zIndex: 1
+    },
+	rectangleOptions:{
+		editable: true,
+		draggable: true
+	},
+	polylineOptions:{
+		editable: true,
+		draggable: true
+	},
+	polygonOptions:{
+		editable: true,
+		draggable: true
+	}
+  });
+  
+  drawingManager.setMap(map);
+  google.maps.event.addListener(drawingManager, 'overlaycomplete', function(event) {
+	
+	draw_array[event.type]=[];
+	draw_array[event.type].push(event.overlay);
+  if (event.type == google.maps.drawing.OverlayType.CIRCLE) {
+    var radius = event.overlay.getRadius();
+	var center = event.overlay.getCenter();
+	alert(radius+" - "+center);
+  }
+  if (event.type == google.maps.drawing.OverlayType.POLYGON) {
+    var radius = event.overlay.getPath();
+	radius=radius.getArray();
+	latlong="";
+	for(i=0;i<radius.length;i++){
+		latlong+=radius[i];
+	}
+	alert(latlong);
+  }
+   if (event.type == google.maps.drawing.OverlayType.POLYLINE) {
+    var radius = event.overlay.getPath();
+	radius=radius.getArray();
+	latlong="";
+	for(i=0;i<radius.length;i++){
+		latlong+=radius[i];
+	}
+	alert(latlong);
+  }
+});
+google.maps.event.addListener(drawingManager, 'changed', function(event) {
+  if (event.type == google.maps.drawing.OverlayType.CIRCLE) {
+    var radius = event.overlay.getRadius();
+	var center = event.overlay.getCenter();
+	alert(radius+" - "+center);
+  }
+  if (event.type == google.maps.drawing.OverlayType.POLYGON) {
+    var radius = event.overlay.getPath();
+	radius=radius.getArray();
+	latlong="";
+	for(i=0;i<radius.length;i++){
+		latlong+=radius[i];
+	}
+	alert(latlong);
+  }
+   if (event.type == google.maps.drawing.OverlayType.POLYLINE) {
+    var radius = event.overlay.getPath();
+	radius=radius.getArray();
+	latlong="";
+	for(i=0;i<radius.length;i++){
+		latlong+=radius[i];
+	}
+	alert(latlong);
+  }
+});
+}
+google.maps.event.addDomListener(window, 'load', initialize);
+$("#map-add").click(function(){
+	drawingManager.setMap(null);
+});
+
+    </script>
+  </body>
+</html>
