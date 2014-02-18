@@ -152,11 +152,19 @@ function initialize(){
     }
 	});
     drawingManager.setMap(map);
-	//draw circle
 	//draw polygon
+	var polygon_array=[['25.774252 -80.190262','18.466465 -66.118292','32.321384 -64.75737','25.774252 -80.190262'],
+['25.774252 -70.190262','28.466465 -66.118292','32.321384 -74.75737','25.774252 -80.190262']];
+ showPolygon(polygon_array,map);
+	//draw circle
+	var circle_array=[["20,25.774252 -80.190262"],["10,25.774252 -80.190262"]];
+	showCircle(circle_array,map);
+	
 	//draw rectengle
 	//draw line
-	
+	var line_array=[['10.774252 -80.190262','20.466465 -66.118292','50.321384 -64.75737','20.774252 -80.190262']];
+ showLine(line_array,map);
+
     google.maps.event.addListener(drawingManager, 'overlaycomplete', function(e) {
 	count_obj++;
         var newShape = e.overlay;
@@ -170,37 +178,90 @@ function initialize(){
         google.maps.event.addListener(newShape, 'click', function() {setSelection(newShape)});
       });
 
-	 var polygon_path = [
-      new google.maps.LatLng(25.774252, -80.190262),
-      new google.maps.LatLng(18.466465, -66.118292),
-      new google.maps.LatLng(32.321384, -64.75737)
-  ];
-   update_Path = new google.maps.Polygon({
-    paths: polygon_path,
-    strokeColor: '#FF0000',
-    strokeOpacity: 0.8,
-    strokeWeight: 3,
-    fillColor: '#FF0000',
-    fillOpacity: 0.35,
-	editable:true
-  });
-  update_Path["name"]="Polygon";
-  update_Path["type"]="polygon";
-  update_Path["alarm"]=0;
-  update_Path.setMap(map);
-  all_shapes.push(update_Path);
-  setSelection(update_Path);
-   google.maps.event.addListener(update_Path, 'mouseup', showArrays);
-
-    google.maps.event.addListener(map, 'click', function(e) {clearSelection();});
+   google.maps.event.addListener(map, 'click', function(e) {clearSelection();});
 }
 function showArrays(event){
 	var newShape =this;
         setSelection(newShape);
         save_coordinates_to_array(newShape);
 		alarm_type(0);
-        google.maps.event.addListener(newShape, 'click', function() {setSelection(newShape)});
-  
+}
+function showPolygon(polygon_array,map){
+for(a=0; a< polygon_array.length; a++){
+	if(polygon_array[a].length>0){
+			var polygon_path=[];
+			level1=polygon_array[a];
+			for(b=0;b< level1.length;b++){
+				level2=level1[b].split(' ');
+				polygon_path.push(new google.maps.LatLng(level2[0], level2[1]));
+			}
+				
+		   update_Path = new google.maps.Polygon({
+			paths: polygon_path,
+			editable:true
+		  });
+		  update_Path["name"]="Polygon";
+		  update_Path["type"]="polygon";
+		  update_Path["alarm"]=0;
+		  update_Path.setMap(map);
+		  all_shapes.push(update_Path);
+		  setSelection(update_Path);
+		  google.maps.event.addListener(update_Path, 'click', showArrays);
+		   google.maps.event.addListener(update_Path, 'set_at', showArrays);
+	   }
+}
+}
+function showLine(polygon_array,map){
+for(a=0; a< polygon_array.length; a++){
+	if(polygon_array[a].length>0){
+			var polygon_path=[];
+			level1=polygon_array[a];
+			for(b=0;b< level1.length;b++){
+				level2=level1[b].split(' ');
+				polygon_path.push(new google.maps.LatLng(level2[0], level2[1]));
+			}
+				
+		   update_Path = new google.maps.Polyline({
+			path: polygon_path,
+			editable:true,
+			strokeColor: '#FF0000',
+			strokeOpacity: 1.0,
+			strokeWeight: 2
+		  });
+		  update_Path["name"]="Line";
+		  update_Path["type"]="line";
+		  update_Path["alarm"]=0;
+		  update_Path.setMap(map);
+		  all_shapes.push(update_Path);
+		  setSelection(update_Path);
+		  google.maps.event.addListener(update_Path, 'click', showArrays);
+		   google.maps.event.addListener(update_Path, 'set_at', showArrays);
+	   }
+}
+}
+function showCircle(circle_array,map){
+for(a=0; a< circle_array.length; a++){
+	if(circle_array[a].length>0){
+			level1=circle_array[a];
+			level1=level1[0].split(',');
+			center=level1[1].split(" ");
+			radius=parseInt(level1[0]);
+			center=	new google.maps.LatLng(center[0], center[1]);
+		   update_Path = new google.maps.Circle({
+			center: center,
+			radius: radius,
+			editable:true
+		  });
+		  update_Path["name"]="Circle";
+		  update_Path["type"]="circle";
+		  update_Path["alarm"]=0;
+		  update_Path.setMap(map);
+		  all_shapes.push(update_Path);
+		  setSelection(update_Path);
+		  google.maps.event.addListener(update_Path, 'click', showArrays);
+		   google.maps.event.addListener(update_Path, 'set_at', showArrays);
+	   }
+}
 }
 google.maps.event.addDomListener(window, 'load', initialize);
 
