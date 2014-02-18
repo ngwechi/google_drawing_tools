@@ -18,7 +18,7 @@ var all_shapes = [];
 var count_obj=0;
 var selectedShape;
 var map; 
-
+var update_path=[];
 function draw_shape(){
     for(var i = 0; i < all_shapes.length; i++)
     {
@@ -137,6 +137,7 @@ function save_coordinates_to_array(newShapeArg){
 }
 
 function initialize(){
+	var glatlngbounds = new google.maps.LatLngBounds();
     map = new google.maps.Map(document.getElementById('map'), {zoom: 12, center: new google.maps.LatLng(32.344, 51.048)});
 
     var drawingManager = new google.maps.drawing.DrawingManager({
@@ -151,8 +152,46 @@ function initialize(){
     }
 	});
     drawingManager.setMap(map);
-
+	//draw circle
+	//draw polygon
+	//draw rectengle
+	//draw line
+	
+   var polygon_path = [
+      new google.maps.LatLng(25.774252, -80.190262),
+      new google.maps.LatLng(18.466465, -66.118292),
+      new google.maps.LatLng(32.321384, -64.75737)
+  ];
+   update_Path = new google.maps.Polygon({
+    paths: polygon_path,
+    strokeColor: '#FF0000',
+    strokeOpacity: 0.8,
+    strokeWeight: 3,
+    fillColor: '#FF0000',
+    fillOpacity: 0.35,
+	editable:true
+  });
+  update_Path['type']='polygon';
+  update_Path['name']='polygon';
+  update_Path['alarm']=0;
+  update_Path.setMap(map);
+  all_shapes.push(update_Path);
+  setSelection(update_Path);
+	
     google.maps.event.addListener(drawingManager, 'overlaycomplete', function(e) {
+	count_obj++;
+        var newShape = e.overlay;
+        newShape.type = e.type;
+		newShape['name']=e.type+" "+count_obj;
+		newShape['alarm']=0;
+        all_shapes.push(newShape);
+        setSelection(newShape);
+        save_coordinates_to_array(newShape);
+		alarm_type(0);
+        google.maps.event.addListener(newShape, 'click', function() {setSelection(newShape)});
+      });
+	  
+   google.maps.event.addListener(update_Path, 'mouseup', function(e) {
 	count_obj++;
         var newShape = e.overlay;
         newShape.type = e.type;
