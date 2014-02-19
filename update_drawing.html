@@ -18,18 +18,22 @@ var all_shapes = [];
 var count_obj=0;
 var selectedShape;
 var map; 
+var glatlngbounds;
 var update_path=[];
 function draw_shape(){
+//clear all shape
     for(var i = 0; i < all_shapes.length; i++)
     {
         all_shapes[i].setMap(null);
     }
 	document.getElementById("name").value="";
 	latlong="";
+//Collect shape array and save here
     for(var i = 0; i < all_shapes.length; i++)
     {
-		alert(all_shapes[i].type);
-		latlong+=all_shapes[i].type;
+		latlong+=all_shapes[i].type+" :: ";
+		latlong+=all_shapes[i].name+" :: ";
+		latlong+=all_shapes[i].alarm+" :: ";
         if(all_shapes[i].type==google.maps.drawing.OverlayType.CIRCLE){
 		
 			latlong+= all_shapes[i].radius+":"+all_shapes[i].center;
@@ -137,7 +141,7 @@ function save_coordinates_to_array(newShapeArg){
 }
 
 function initialize(){
-	var glatlngbounds = new google.maps.LatLngBounds();
+	glatlngbounds = new google.maps.LatLngBounds();
     map = new google.maps.Map(document.getElementById('map'), {zoom: 12, center: new google.maps.LatLng(32.344, 51.048)});
 
     var drawingManager = new google.maps.drawing.DrawingManager({
@@ -155,15 +159,17 @@ function initialize(){
 	//draw polygon
 	var polygon_array=[['25.774252 -80.190262','18.466465 -66.118292','32.321384 -64.75737','25.774252 -80.190262'],
 ['25.774252 -70.190262','28.466465 -66.118292','32.321384 -74.75737','25.774252 -80.190262']];
- showPolygon(polygon_array,map);
+ showPolygon(polygon_array,map,glatlngbounds);
 	//draw circle
 	var circle_array=[["20,25.774252 -80.190262"],["10,25.774252 -80.190262"]];
-	showCircle(circle_array,map);
+	showCircle(circle_array,map,glatlngbounds);
 	
 	//draw rectengle
+	var rectengle_array=[["35.774252 -80.190262","25.774252 -90.190262"],["75.774252 -80.190262","50.774252 -90.190262"]];
+	showRectangle(rectengle_array,map,glatlngbounds);
 	//draw line
 	var line_array=[['10.774252 -80.190262','20.466465 -66.118292','50.321384 -64.75737','20.774252 -80.190262']];
- showLine(line_array,map);
+ showLine(line_array,map,glatlngbounds);
 
     google.maps.event.addListener(drawingManager, 'overlaycomplete', function(e) {
 	count_obj++;
@@ -179,6 +185,8 @@ function initialize(){
       });
 
    google.maps.event.addListener(map, 'click', function(e) {clearSelection();});
+   map.setCenter(glatlngbounds.getCenter(), map.fitBounds(glatlngbounds));
+   setTimeout(function() { if (map.getZoom() >11)map.setZoom(11);}, 1000);
 }
 function showArrays(event){
 	var newShape =this;
@@ -186,14 +194,16 @@ function showArrays(event){
         save_coordinates_to_array(newShape);
 		alarm_type(0);
 }
-function showPolygon(polygon_array,map){
+function showPolygon(polygon_array,map,glatlngbounds){
 for(a=0; a< polygon_array.length; a++){
 	if(polygon_array[a].length>0){
 			var polygon_path=[];
 			level1=polygon_array[a];
 			for(b=0;b< level1.length;b++){
 				level2=level1[b].split(' ');
-				polygon_path.push(new google.maps.LatLng(level2[0], level2[1]));
+				latlong=new google.maps.LatLng(level2[0], level2[1]);
+				polygon_path.push(latlong);
+				glatlngbounds.extend(latlong);
 			}
 				
 		   update_Path = new google.maps.Polygon({
@@ -211,14 +221,16 @@ for(a=0; a< polygon_array.length; a++){
 	   }
 }
 }
-function showLine(polygon_array,map){
+function showLine(polygon_array,map,glatlngbounds){
 for(a=0; a< polygon_array.length; a++){
 	if(polygon_array[a].length>0){
 			var polygon_path=[];
 			level1=polygon_array[a];
 			for(b=0;b< level1.length;b++){
 				level2=level1[b].split(' ');
-				polygon_path.push(new google.maps.LatLng(level2[0], level2[1]));
+				latlong=new google.maps.LatLng(level2[0], level2[1]);
+				polygon_path.push(latlong);
+				glatlngbounds.extend(latlong);
 			}
 				
 		   update_Path = new google.maps.Polyline({
@@ -229,7 +241,7 @@ for(a=0; a< polygon_array.length; a++){
 			strokeWeight: 2
 		  });
 		  update_Path["name"]="Line";
-		  update_Path["type"]="line";
+		  update_Path["type"]="polyline";
 		  update_Path["alarm"]=0;
 		  update_Path.setMap(map);
 		  all_shapes.push(update_Path);
@@ -239,7 +251,34 @@ for(a=0; a< polygon_array.length; a++){
 	   }
 }
 }
-function showCircle(circle_array,map){
+function showRectangle(polygon_array,map,glatlngbounds){
+for(a=0; a< polygon_array.length; a++){
+	if(polygon_array[a].length>0){
+			var polygon_path=new google.maps.LatLngBounds();
+			level1=polygon_array[a];
+			for(b=0;b< level1.length;b++){
+				level2=level1[b].split(' ');
+				latlong=new google.maps.LatLng(level2[0], level2[1]);
+				polygon_path.extend(latlong);
+				glatlngbounds.extend(latlong);
+			}
+				
+		   update_Path = new google.maps.Rectangle({
+			bounds: polygon_path,
+			editable:true
+		  });
+		  update_Path["name"]="Rectangle";
+		  update_Path["type"]="rectangle";
+		  update_Path["alarm"]=0;
+		  update_Path.setMap(map);
+		  all_shapes.push(update_Path);
+		  setSelection(update_Path);
+		  google.maps.event.addListener(update_Path, 'click', showArrays);
+		   google.maps.event.addListener(update_Path, 'set_at', showArrays);
+	   }
+}
+}
+function showCircle(circle_array,map,glatlngbounds){
 for(a=0; a< circle_array.length; a++){
 	if(circle_array[a].length>0){
 			level1=circle_array[a];
@@ -247,6 +286,7 @@ for(a=0; a< circle_array.length; a++){
 			center=level1[1].split(" ");
 			radius=parseInt(level1[0]);
 			center=	new google.maps.LatLng(center[0], center[1]);
+			glatlngbounds.extend(center);
 		   update_Path = new google.maps.Circle({
 			center: center,
 			radius: radius,
